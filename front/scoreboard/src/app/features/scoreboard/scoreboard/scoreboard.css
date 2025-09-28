@@ -1,28 +1,19 @@
-/* =============================
-   SAFE AREA + FONDO PANTALLA
-   ============================= */
 
-/* Altura “segura” del HUD para empujar el tablero */
 :root {
-  --hud-safe: 1000px; /* ajusta a gusto */
+  --hud-safe: 1000px; 
 }
 
-/* Fondo negro de la pantalla del scoreboard (NO tocar) + padding-top */
 .scoreboard-page {
   min-height: 100dvh;
   background: #0b0b0b;
-  padding-top: calc(var(--hud-safe) + 5px); /* 💡 crea el espacio visible */
+  padding-top: calc(var(--hud-safe) + 5px); 
 }
 
-/* En móviles un poco menos */
+
 @media (max-width: 720px) {
   :root { --hud-safe: 56px; }
   .scoreboard-page { padding-top: calc(var(--hud-safe) + 6px); }
 }
-
-/* =============================
-   HUD FIJO (no altera el layout)
-   ============================= */
 
 .hud-bar {
   position: fixed;
@@ -34,7 +25,7 @@
   align-items: center;
   gap: 12px;
   z-index: 3000;
-  pointer-events: none; /* el contenedor no captura eventos */
+  pointer-events: none; 
 }
 
 .hud-left, .hud-right {
@@ -42,9 +33,9 @@
   gap: 10px;
 }
 
-/* Pills */
+
 .hud-bar .pill {
-  pointer-events: auto;          /* las pills sí capturan eventos */
+  pointer-events: auto;        
   display: inline-flex;
   align-items: center;
   gap: 8px;

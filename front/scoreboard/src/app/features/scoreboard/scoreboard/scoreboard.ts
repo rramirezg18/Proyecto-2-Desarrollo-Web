@@ -1,7 +1,7 @@
 // src/app/features/scoreboard/scoreboard/scoreboard.ts
 import { Component, computed, effect, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router'; // ⬅️ RouterModule
+import { ActivatedRoute, Router, RouterModule } from '@angular/router'; 
 import Swal from 'sweetalert2';
 
 import { ApiService } from '../../../core/api';
@@ -20,7 +20,7 @@ import { FoulsPanelComponent } from '../../../shared/fouls-panel/fouls-panel';
   styleUrls: ['./scoreboard.css'],
   imports: [
     CommonModule,
-    RouterModule,                 // ⬅️ necesario para [routerLink]
+    RouterModule,                 
     TeamPanelComponent,
     TimerComponent,
     QuarterIndicatorComponent,
@@ -83,7 +83,7 @@ export class ScoreboardComponent {
     }
   }
 
-  // ===== HUD helpers =====
+
   get isAdmin(): boolean {
     try {
       if (typeof this.auth.isAdmin === 'function') return this.auth.isAdmin();

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scoreboard.Infrastructure;
 using Scoreboard.Models.Entities;
+using Microsoft.AspNetCore.Authorization; 
 
 namespace Scoreboard.Controllers;
 
@@ -11,6 +12,7 @@ public class TeamsController(AppDbContext db) : ControllerBase
 {
     // GET /api/teams?page=1&pageSize=10&q=texto
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
@@ -45,6 +47,7 @@ public class TeamsController(AppDbContext db) : ControllerBase
 
     // GET /api/teams/{id}
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetById(int id)
     {
         var team = await db.Teams.FirstOrDefaultAsync(t => t.Id == id);
@@ -71,6 +74,7 @@ public class TeamsController(AppDbContext db) : ControllerBase
 
     // POST /api/teams
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] CreateTeamDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
@@ -111,6 +115,7 @@ public class TeamsController(AppDbContext db) : ControllerBase
 
     // PUT /api/teams/{id}
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, [FromBody] CreateTeamDto dto)
     {
         var team = await db.Teams.Include(t => t.Players).FirstOrDefaultAsync(t => t.Id == id);
@@ -151,6 +156,7 @@ public class TeamsController(AppDbContext db) : ControllerBase
 
     // DELETE /api/teams/{id}
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var team = await db.Teams

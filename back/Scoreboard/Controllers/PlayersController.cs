@@ -10,7 +10,7 @@ namespace Scoreboard.Controllers;
 [Route("api/players")]
 public class PlayersController(AppDbContext db) : ControllerBase
 {
-    // GET /api/players?page=1&pageSize=10&teamId=1&search=lebron
+
     [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAll(
@@ -22,11 +22,11 @@ public class PlayersController(AppDbContext db) : ControllerBase
     {
         var query = db.Players.Include(p => p.Team).AsQueryable();
 
-        // 👉 Filtro por equipo
+
         if (teamId.HasValue)
             query = query.Where(p => p.TeamId == teamId.Value);
 
-        // 👉 Filtro por búsqueda en nombre o número
+
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim().ToLower();
@@ -57,6 +57,7 @@ public class PlayersController(AppDbContext db) : ControllerBase
 
     // GET /api/players/5
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetById(int id)
     {
         var player = await db.Players.Include(p => p.Team)
@@ -64,7 +65,8 @@ public class PlayersController(AppDbContext db) : ControllerBase
 
         if (player == null) return NotFound();
 
-        return Ok(new {
+        return Ok(new
+        {
             id = player.Id,
             number = player.Number,
             name = player.Name,
@@ -75,6 +77,7 @@ public class PlayersController(AppDbContext db) : ControllerBase
 
     // POST /api/players
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] Player player)
     {
         if (string.IsNullOrWhiteSpace(player.Name))
@@ -88,6 +91,7 @@ public class PlayersController(AppDbContext db) : ControllerBase
 
     // PUT /api/players/5
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(int id, [FromBody] Player dto)
     {
         var player = await db.Players.FindAsync(id);
@@ -103,6 +107,7 @@ public class PlayersController(AppDbContext db) : ControllerBase
 
     // DELETE /api/players/5
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
     {
         var player = await db.Players.FindAsync(id);
