@@ -39,7 +39,7 @@ services:
       db-init:
         condition: service_completed_successfully
     ports:
-      - "8080:8080"
+      - "5000:8080"
 
   web:
     build:
@@ -50,6 +50,38 @@ services:
         condition: service_started
     ports:
       - "80:80"
+
+
+  report-service:
+    build:
+      context: ./report-service
+      dockerfile: docker/Dockerfile
+    image: scoreboard-report-service        # opcional, pero útil para nombrar la imagen
+    container_name: report-service
+    env_file:
+      - ./report-service/.env
+    environment:
+      INTERNAL_SECRET: "pon_un_secreto_largo_y_unico"   # <— DEBE SER EL MISMO que en Nginx
+    depends_on:
+      api:
+        condition: service_started
+      redis:
+        condition: service_started
+    ports:
+      - "8080:8080"      # puedes quitarlo si solo accederás vía Nginx
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+
+
+
 
 volumes:
   mssqldata:

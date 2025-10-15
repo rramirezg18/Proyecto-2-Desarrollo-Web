@@ -25,6 +25,14 @@ export const routes: Routes = [
       import('./pages/admin/admin-dashboard').then(m => m.AdminDashboardComponent),
   },
 
+  // Reportes (solo Admin) -> ruta dedicada
+  {
+    path: 'admin/reports',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () =>
+      import('./pages/admin/reports/reports-page').then(m => m.ReportsPage),
+  },
+
   // Score y Control (sólo autenticado)
   {
     path: 'score/:id',
@@ -87,5 +95,6 @@ export const routes: Routes = [
       import('./pages/tournaments/tournaments').then(m => m.TournamentsComponent),
   },
 
+  // SIEMPRE al final
   { path: '**', redirectTo: 'login' },
 ];
