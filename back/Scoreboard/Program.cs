@@ -56,7 +56,7 @@ builder.Services.AddScoped<IMenuService, MenuService>();
 
 // 7) JWT
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var keyBytes = Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? "SuperSecretKey123!");
+var keyBytes = Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? "ClaverSuperMegaHiperSecreta*1234");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -143,7 +143,7 @@ if (app.Environment.IsDevelopment())
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.UseAuthentication();   
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -2,9 +2,9 @@
 ## 🏀 MARCADOR DE BALONCESTO
 
 **Integrantes**
-- Roberto Antonio Ramírez Gómez — 7690-22-12700  
-- Jean Klaus Castañeda Santos — 7690-22-892  
-- Jonathan Joel Chan Cuellar — 7690-22-1805  
+- Roberto Antonio Ramírez Gómez — 7690-22-12700
+- Jean Klaus Castañeda Santos — 7690-22-892
+- Jonathan Joel Chan Cuellar — 7690-22-1805
 
 ---
 
@@ -16,19 +16,19 @@ El backend está desarrollado con ASP.NET Core 8 y expone una API RESTful para g
 ---
 
 ## 2) Arquitectura general
-- **Tipo:** Monolito modular  
-- **Patrones:**  
-  - **MVC** (controladores)  
-  - **Repository Pattern** (acceso a datos)  
-  - **Service Layer** (lógica de negocio)  
+- **Tipo:** Monolito modular
+- **Patrones:**
+  - **MVC** (controladores)
+  - **Repository Pattern** (acceso a datos)
+  - **Service Layer** (lógica de negocio)
   - **SignalR** (eventos en tiempo real)
 - **Stack clave:** ASP.NET Core · EF Core · SQL Server · JWT · SignalR · Docker
 
 ### Capas y componentes
-- **Controllers** → Endpoints REST (`/api/*`)  
-- **Services** → Lógica de negocio (`AuthService`, `RoleService`, `MenuService`, etc.)  
-- **Repositories** → Acceso a datos (interfaces + implementaciones)  
-- **Infrastructure/Data** → `AppDbContext` (Fluent API) y configuración  
+- **Controllers** → Endpoints REST (`/api/*`)
+- **Services** → Lógica de negocio (`AuthService`, `RoleService`, `MenuService`, etc.)
+- **Repositories** → Acceso a datos (interfaces + implementaciones)
+- **Infrastructure/Data** → `AppDbContext` (Fluent API) y configuración
 - **Hubs** → `ScoreHub` (suscripción por `matchId`)
 
 ```
@@ -59,10 +59,10 @@ back/Scoreboard/
 ---
 
 ## 4) Program.cs y middleware
-- **Swagger** habilitado para documentar y probar la API  
-- **CORS** configurado para permitir el frontend (agregar dominio en producción)  
-- **EF Core**: registro de `DbContext` contra SQL Server  
-- **Autenticación/Autorización** con **JWT**  
+- **Swagger** habilitado para documentar y probar la API
+- **CORS** configurado para permitir el frontend (agregar dominio en producción)
+- **EF Core**: registro de `DbContext` contra SQL Server
+- **Autenticación/Autorización** con **JWT**
 - **SignalR** (ejemplo de mapeo):
 ```csharp
 app.MapHub<ScoreHub>("/hubs/score");
@@ -88,8 +88,8 @@ Definir la política para permitir el origen del frontend. En producción, agreg
 ---
 
 ## 6) Ejecución local (sin Docker)
-1. Requisitos: **.NET SDK 8+**, **SQL Server 2022**  
-2. Configura `DefaultConnection` en `appsettings.json`  
+1. Requisitos: **.NET SDK 8+**, **SQL Server 2022**
+2. Configura `DefaultConnection` en `appsettings.json`
 3. Restaurar/compilar:
    ```bash
    cd back/Scoreboard
@@ -153,10 +153,10 @@ docker compose down             # detener
 ---
 
 ## 9) Validaciones y manejo de errores
-- Evitar equipos duplicados  
-- No registrar eventos en **partidos finalizados**  
-- Verificar que equipos existan al crear partido  
-- Validar puntos en `ScoreEvent` (1, 2 o 3)  
+- Evitar equipos duplicados
+- No registrar eventos en **partidos finalizados**
+- Verificar que equipos existan al crear partido
+- Validar puntos en `ScoreEvent` (1, 2 o 3)
 - Validar que la fecha del partido no sea pasada
 
 **Códigos HTTP**
@@ -165,12 +165,12 @@ docker compose down             # detener
 ---
 
 ## 10) Base de datos
-- **Motor:** SQL Server 2022 (Docker)  
-- **Conexión:** `DefaultConnection` (en `appsettings.json`)  
+- **Motor:** SQL Server 2022 (Docker)
+- **Conexión:** `DefaultConnection` (en `appsettings.json`)
 - **ORM:** EF Core
 
 **Tablas esperadas (resumen)**
-- `Teams`, `Players`, `Matches`, `ScoreEvents`, `Fouls`, `TeamWins`  
+- `Teams`, `Players`, `Matches`, `ScoreEvents`, `Fouls`, `TeamWins`
 - Seguridad/UI: `Users`, `Roles`, `Menus`, `RoleMenus`
 
 > Migraciones: `dotnet ef migrations add <Nombre>` · `dotnet ef database update`
@@ -178,28 +178,28 @@ docker compose down             # detener
 ---
 
 ## 11) Lógica de negocio
-- **Servicios:** Gestión de equipos, programación de partidos, registro de eventos  
+- **Servicios:** Gestión de equipos, programación de partidos, registro de eventos
 - **Críticos:** Actualización en vivo con SignalR y cálculo de posiciones por victorias
 
 ---
 
 ## 12) Despliegue (VPS/Dominio/Certificado)
-- Ejecutar la API detrás de Nginx (reverse proxy) con HTTPS (Let’s Encrypt)  
-- Agregar `https://proyectosdw.lat` a CORS 
-- Configurar variables de entorno (ConnectionStrings y JWT)  
+- Ejecutar la API detrás de Nginx (reverse proxy) con HTTPS (Let’s Encrypt)
+- Agregar `https://proyectosdw.lat` a CORS
+- Configurar variables de entorno (ConnectionStrings y JWT)
 - Operar con Docker Compose o systemd en modo producción
 
 ---
 
 ## 13) Troubleshooting
-- **401/403** → Token ausente/expirado o rol insuficiente  
-- **CORS** → Agregar dominio permitido y reiniciar  
-- **SQL Server** → Ver credenciales/puerto; usar `healthcheck` en Compose  
+- **401/403** → Token ausente/expirado o rol insuficiente
+- **CORS** → Agregar dominio permitido y reiniciar
+- **SQL Server** → Ver credenciales/puerto; usar `healthcheck` en Compose
 - **SignalR** → Validar URL del hub y `matchId`; permitir WebSockets en Nginx
 ---
 
 ## 14) Lógica de negocio
-- **Servicios:** Gestión de equipos, programación de partidos, registro de eventos  
+- **Servicios:** Gestión de equipos, programación de partidos, registro de eventos
 - **Críticos:** Actualización en vivo con SignalR y cálculo de posiciones por victorias
 
 ---

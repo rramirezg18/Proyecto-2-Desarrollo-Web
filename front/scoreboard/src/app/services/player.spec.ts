@@ -31,7 +31,7 @@ describe('PlayerService', () => {
       { id: 1, number: 10, name: 'Jordan', teamId: 1, teamName: 'Bulls' },
       { id: 2, number: 23, name: 'LeBron', teamId: 2, teamName: 'Lakers' }
     ];
-    
+
 
     service.getPlayers(1, 5).subscribe((res: { items: Player[], totalCount: number }) => {
       expect(res.items.length).toBe(2);

@@ -58,7 +58,7 @@ namespace Scoreboard.Services
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? "SuperSecretKey123"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            // ⚠️ Normalizamos el nombre del rol y emitimos AMBAS variantes
+
             var roleName = string.IsNullOrWhiteSpace(user.Role?.Name) ? "User" : user.Role!.Name;
             if (roleName.Equals("administrador", StringComparison.OrdinalIgnoreCase)) roleName = "Admin";
             if (roleName.Equals("admin", StringComparison.OrdinalIgnoreCase))          roleName = "Admin";
@@ -67,13 +67,13 @@ namespace Scoreboard.Services
             {
                 new Claim(ClaimTypes.Name, user.Username),
 
-                // 👉 estándar para ASP.NET:
+
                 new Claim(ClaimTypes.Role, roleName),
 
-                // 👉 plano para clientes y librerías:
+
                 new Claim("role", roleName),
 
-                // opcional: por si manejas múltiples roles
+
                 new Claim("roles", System.Text.Json.JsonSerializer.Serialize(new []{ roleName })),
 
                 new Claim("Id", user.Id.ToString())

@@ -30,9 +30,9 @@ Funcionalidades, Proteccion de endpoints con una api basada en roles y autentica
 * [x] Base de Datos: sql server 2022
 
 ## **Se utilizarón herramientas como:**
-* [x] Entity Framework: Para migración de datos. 
+* [x] Entity Framework: Para migración de datos.
 * [x] Signal IR: Para visualizar todos los cambios en tiempo real,.
-* [x] Sweet Alert: Para la generación de alertas interactivas. 
+* [x] Sweet Alert: Para la generación de alertas interactivas.
 * [x] Docker: Como contenedores de la aplicación.
 * [x] Proxy Reverse: Para redireccionamiento de puertos.
 * [x] JWT: Para proteccion de endpoints.
@@ -54,13 +54,3 @@ Funcionalidades, Proteccion de endpoints con una api basada en roles y autentica
 
 [**https://proyectosdw.lat/score**](https://proyectosdw.lat/score "score")
 ![Imagen](score.png)
-
-
-
-
-
-
-
-
-
-

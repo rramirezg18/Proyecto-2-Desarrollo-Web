@@ -18,7 +18,7 @@ export class ApiService {
     return this.http.post(`${this.base}/matches/${id}/score/adjust`, body);
   }
 
-  //FOULS 
+  //FOULS
   addFoul(id: number, body: { teamId: number; playerId?: number; type?: string }) {
     return this.http.post(`${this.base}/matches/${id}/fouls`, body);
   }

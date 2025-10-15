@@ -12,7 +12,7 @@ export class AuthenticationService {
   private apiUrl = '/api/auth';
 
   private storage(): Storage | null {
-    if (!isPlatformBrowser(this.platformId)) return null; 
+    if (!isPlatformBrowser(this.platformId)) return null;
     try { return window.localStorage; } catch { return null; }
   }
 

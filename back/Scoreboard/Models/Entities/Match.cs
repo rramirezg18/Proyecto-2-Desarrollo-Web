@@ -15,11 +15,11 @@ public class Match
     public int HomeScore { get; set; }
     public int AwayScore { get; set; }
 
-    
+
     public int Period { get; set; } = 1;        // 1..4
     public DateTime DateMatch { get; set; } = DateTime.Now;
 
-    
+
     public Team HomeTeam { get; set; } = null!;
     public Team AwayTeam { get; set; } = null!;
 

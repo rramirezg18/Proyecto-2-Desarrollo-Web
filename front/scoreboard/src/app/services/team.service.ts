@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators'; 
+import { map } from 'rxjs/operators';
 import { Team } from '../models/team';
 
 @Injectable({
@@ -27,7 +27,7 @@ export class TeamService {
     );
   }
 
- 
+
   getAll(): Observable<Team[]> {
 
     return this.getTeams(1, 1000, '').pipe(map(r => r.items));

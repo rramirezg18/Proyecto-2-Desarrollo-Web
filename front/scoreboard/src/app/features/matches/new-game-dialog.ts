@@ -60,7 +60,7 @@ export class NewGameDialogComponent {
       homeTeamId,
       awayTeamId,
       quarterDurationSeconds: Math.round(Number(minutes) * 60)
-      
+
     });
   }
 }

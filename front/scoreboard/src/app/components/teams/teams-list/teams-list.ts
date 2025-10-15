@@ -78,7 +78,7 @@ export class TeamsListComponent implements OnInit {
   }
 
   // Header actions
-  
+
   logout() {
   // Ajusta si tu servicio devuelve un Observable/Promise
   (this as any).auth?.logout?.();

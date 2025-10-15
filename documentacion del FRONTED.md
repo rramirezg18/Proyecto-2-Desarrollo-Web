@@ -2,9 +2,9 @@
 ## 🏀 MARCADOR DE BALONCESTO
 
 **Integrantes**
-- Roberto Antonio Ramírez Gómez — 7690-22-12700  
-- Jean Klaus Castañeda Santos — 7690-22-892  
-- Jonathan Joel Chan Cuellar — 7690-22-1805  
+- Roberto Antonio Ramírez Gómez — 7690-22-12700
+- Jean Klaus Castañeda Santos — 7690-22-892
+- Jonathan Joel Chan Cuellar — 7690-22-1805
 
 ---
 
@@ -16,12 +16,12 @@ Frontend desarrollado con **Angular (16/17, Standalone Components)** para una SP
 ---
 
 ## 2) Tecnologías y paquetes
-- **Angular 17+** (Standalone, Router, HttpClient)  
-- **TypeScript 5+**, **RxJS 7+**  
-- **Angular Material** y/o **Bootstrap 5**  
-- **@microsoft/signalr** (cliente SignalR)  
-- **SweetAlert2 / MatSnackBar** para feedback al usuario  
-- **SCSS/CSS** (encapsulado por componente)  
+- **Angular 17+** (Standalone, Router, HttpClient)
+- **TypeScript 5+**, **RxJS 7+**
+- **Angular Material** y/o **Bootstrap 5**
+- **@microsoft/signalr** (cliente SignalR)
+- **SweetAlert2 / MatSnackBar** para feedback al usuario
+- **SCSS/CSS** (encapsulado por componente)
 
 > Requisitos: **Node.js 18+** y **npm 9+**, **Angular CLI**
 
@@ -217,9 +217,9 @@ export const AuthGuard: CanActivateFn = () => {
 ---
 
 ## 7) Estilos y diseño
-- **Encapsulación por componente** (`.scss` o `.css`) para evitar colisiones.  
-- **Grid/Responsive** con Bootstrap o Angular Material Layout.  
-- **Variables CSS** para tema del marcador (colores LEDs, fondo, etc.).  
+- **Encapsulación por componente** (`.scss` o `.css`) para evitar colisiones.
+- **Grid/Responsive** con Bootstrap o Angular Material Layout.
+- **Variables CSS** para tema del marcador (colores LEDs, fondo, etc.).
 - **Buenas prácticas**: no usar `!important` salvo imprescindible; evitar estilos globales agresivos.
 
 Ejemplo de layout con Bootstrap:
@@ -298,11 +298,11 @@ server {
 ---
 
 ## 11) Troubleshooting
-- **CORS**: usar `proxy.conf.json` en dev; en prod, configurar CORS en backend y Nginx  
-- **401/403**: token faltante/expirado; revisar interceptor y almacenamiento  
-- **SignalR**: error de negociación → verificar URL, habilitar WebSockets en proxy  
-- **404 al refrescar ruta**: configurar `try_files ... /index.html` en Nginx  
-- **Error Angular Material**: falta importar módulo/componente específico  
+- **CORS**: usar `proxy.conf.json` en dev; en prod, configurar CORS en backend y Nginx
+- **401/403**: token faltante/expirado; revisar interceptor y almacenamiento
+- **SignalR**: error de negociación → verificar URL, habilitar WebSockets en proxy
+- **404 al refrescar ruta**: configurar `try_files ... /index.html` en Nginx
+- **Error Angular Material**: falta importar módulo/componente específico
 - **Build**: versiones Node/CLI incompatibles → usar Node 18+ y Angular CLI alineada
 
 ---
@@ -313,6 +313,3 @@ server {
 - **Teams** → CRUD equipos y jugadores
 - **Matches** → programación y seguimiento de partidos
 - **Admin** → menú/roles (según permisos)
-
-
-

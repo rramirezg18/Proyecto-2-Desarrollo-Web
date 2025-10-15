@@ -11,4 +11,3 @@ export class QuarterIndicatorComponent {
   private rt = inject(RealtimeService);
   quarter = computed(() => this.rt.quarter());
 }
-

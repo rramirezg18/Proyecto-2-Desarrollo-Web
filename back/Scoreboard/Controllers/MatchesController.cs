@@ -228,9 +228,7 @@ public class MatchesController(AppDbContext db, IHubContext<ScoreHub> hub, IMatc
         return Ok(list);
     }
 
-    // =======================
-    //  Crear partido rápido
-    // =======================
+
     [HttpPost("new")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> NewGame([FromBody] NewGameDto dto)
@@ -305,9 +303,6 @@ public class MatchesController(AppDbContext db, IHubContext<ScoreHub> hub, IMatc
         });
     }
 
-    // =======================
-    //  Marcador
-    // =======================
     [HttpPost("{id:int}/score")]
     public async Task<IActionResult> AddScore(int id, [FromBody] AddScoreDto dto)
     {
@@ -358,9 +353,7 @@ public class MatchesController(AppDbContext db, IHubContext<ScoreHub> hub, IMatc
         return Ok();
     }
 
-    // =======================
-    //  Faltas
-    // =======================
+
     [HttpPost("{id:int}/fouls")]
     public async Task<IActionResult> AddFoul(int id, [FromBody] AddFoulDto dto)
     {
@@ -428,10 +421,8 @@ public class MatchesController(AppDbContext db, IHubContext<ScoreHub> hub, IMatc
         return Ok(new { homeFouls, awayFouls });
     }
 
-    // =======================
-    //  Timer / Períodos
-    // =======================
-    [HttpPost("{id:int}/start")]          // alias práctico (mismo método que /timer/start)
+
+    [HttpPost("{id:int}/start")]
     [HttpPost("{id:int}/timer/start")]
     [Authorize(Roles = "Control")]
     public async Task<IActionResult> StartTimer(int id, [FromBody] StartTimerDto? dto)
@@ -565,9 +556,7 @@ public class MatchesController(AppDbContext db, IHubContext<ScoreHub> hub, IMatc
         return Ok(new { quarter = m.Period });
     }
 
-    // =======================
-    //  Finalizar partido (Simular y guardar marcador + faltas)
-    // =======================
+
     [HttpPost("{id:int}/finish")]
     public async Task<IActionResult> Finish(int id, [FromBody] FinishMatchDto dto)
     {
@@ -643,9 +632,7 @@ public class MatchesController(AppDbContext db, IHubContext<ScoreHub> hub, IMatc
         return Ok(new { id = m.Id, status = m.Status, homeScore = m.HomeScore, awayScore = m.AwayScore });
     }
 
-    // =======================
-    //  Cancelar / Suspender
-    // =======================
+
     [HttpPost("{id:int}/cancel")]
     public async Task<IActionResult> Cancel(int id)
     {
@@ -676,9 +663,7 @@ public class MatchesController(AppDbContext db, IHubContext<ScoreHub> hub, IMatc
         return Ok(new { status = m.Status });
     }
 
-    // =======================
-    //  Helper: registrar la victoria
-    // =======================
+
     private async Task RecordWinIfFinishedAsync(MatchEntity m)
     {
         if (m.Status != "Finished") return;

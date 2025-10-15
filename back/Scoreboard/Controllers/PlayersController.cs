@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scoreboard.Infrastructure;
 using Scoreboard.Models.Entities;
-using Microsoft.AspNetCore.Authorization; 
+using Microsoft.AspNetCore.Authorization;
 
 namespace Scoreboard.Controllers;
 

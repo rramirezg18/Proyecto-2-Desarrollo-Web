@@ -1,7 +1,7 @@
 // src/app/features/scoreboard/scoreboard/scoreboard.ts
 import { Component, computed, effect, inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router'; 
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import Swal from 'sweetalert2';
 
 import { ApiService } from '../../../core/api';
@@ -20,7 +20,7 @@ import { FoulsPanelComponent } from '../../../shared/fouls-panel/fouls-panel';
   styleUrls: ['./scoreboard.css'],
   imports: [
     CommonModule,
-    RouterModule,                 
+    RouterModule,
     TeamPanelComponent,
     TimerComponent,
     QuarterIndicatorComponent,

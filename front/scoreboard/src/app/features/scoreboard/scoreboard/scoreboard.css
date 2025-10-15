@@ -1,12 +1,12 @@
 
 :root {
-  --hud-safe: 1000px; 
+  --hud-safe: 1000px;
 }
 
 .scoreboard-page {
   min-height: 100dvh;
   background: #0b0b0b;
-  padding-top: calc(var(--hud-safe) + 5px); 
+  padding-top: calc(var(--hud-safe) + 5px);
 }
 
 
@@ -25,7 +25,7 @@
   align-items: center;
   gap: 12px;
   z-index: 3000;
-  pointer-events: none; 
+  pointer-events: none;
 }
 
 .hud-left, .hud-right {
@@ -35,7 +35,7 @@
 
 
 .hud-bar .pill {
-  pointer-events: auto;        
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 8px;

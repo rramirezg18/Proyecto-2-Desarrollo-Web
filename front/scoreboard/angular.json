@@ -38,12 +38,12 @@
               ],
               "optimization": {
                 "styles": { "minify": true, "inlineCritical": true },
-                "fonts":  { "inline": false } 
+                "fonts":  { "inline": false }
               }
             },
             "development": {
               "optimization": {
-                "fonts": { "inline": false }  
+                "fonts": { "inline": false }
               },
               "extractLicenses": false,
               "sourceMap": true
