@@ -1,4 +1,4 @@
-# PROYECTO 1 – DESARROLLO WEB
+# PROYECTO 3 – DESARROLLO WEB
 ## 🏀 MARCADOR DE BALONCESTO
 
 **Integrantes**
@@ -313,3 +313,4 @@ server {
 - **Teams** → CRUD equipos y jugadores
 - **Matches** → programación y seguimiento de partidos
 - **Admin** → menú/roles (según permisos)
+
