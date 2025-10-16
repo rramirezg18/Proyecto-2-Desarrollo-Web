@@ -1,4 +1,4 @@
-# PROYECTO 1 – DESARROLLO WEB
+# PROYECTO 3 – DESARROLLO WEB
 ## 🏀 MARCADOR DE BALONCESTO
 
 **Integrantes**
@@ -203,3 +203,4 @@ docker compose down             # detener
 - **Críticos:** Actualización en vivo con SignalR y cálculo de posiciones por victorias
 
 ---
+
