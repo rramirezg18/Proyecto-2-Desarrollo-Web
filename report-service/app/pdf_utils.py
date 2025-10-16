@@ -1,7 +1,7 @@
-# app/pdf_utils.py
 from collections.abc import Iterable
 from io import BytesIO
-from typing import Any
+from typing import Any, Optional
+from datetime import datetime
 
 from reportlab.lib import colors, pagesizes
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
@@ -42,7 +42,7 @@ def _styles():
     h2 = ParagraphStyle(
         "H2",
         parent=s["Heading2"],
-        spaceBefore=6,
+        spaceBefore=10,
         spaceAfter=6,
     )
     normal = ParagraphStyle(
@@ -91,6 +91,24 @@ def _safe(d: dict[str, Any], *keys: str, default: str = "-") -> Any:
     return default
 
 
+def _fmt_short_dt(raw: Any) -> str:
+    """
+    Devuelve 'YYYY-MM-DD HH:mm' si se puede parsear; si no, str(raw).
+    """
+    if raw is None:
+        return "-"
+    s = str(raw)
+    try:
+        # soporta '...Z'
+        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        return dt.strftime("%Y-%m-%d %H:%M")
+    except Exception:
+        # último recurso: sólo fecha si viene con 'T'
+        if "T" in s:
+            return s.split("T", 1)[0]
+        return s
+
+
 # ------------------- BUILDERS -------------------
 
 
@@ -126,7 +144,7 @@ def build_pdf_teams(teams: Iterable[dict[str, Any]]) -> bytes:
 def build_pdf_players_by_team(
     team_id: str,
     players: Iterable[dict[str, Any]],
-    team_name: str | None = None,  # <-- NUEVO parámetro opcional
+    team_name: str | None = None,
 ) -> bytes:
     buf = BytesIO()
     doc = _doc(buf)
@@ -145,7 +163,6 @@ def build_pdf_players_by_team(
             ]
         )
 
-    # Título con nombre si lo tenemos
     titulo = (
         f"Jugadores del Equipo {team_name}  (#{team_id})"
         if team_name
@@ -158,6 +175,45 @@ def build_pdf_players_by_team(
         Paragraph(f"Total: {len(rows)-1}", normal),
         Spacer(1, 8),
         _table(rows),
+    ]
+    doc.build(story)
+    return buf.getvalue()
+
+
+def build_pdf_all_players(
+    players: Iterable[dict[str, Any]], team_name_by_id: dict[str, str]
+) -> bytes:
+    """
+    Tabla completa de jugadores: # | Player | Team | Position | Number
+    """
+    buf = BytesIO()
+    doc = _doc(buf)
+    title, _, normal = _styles()
+
+    rows: list[list[Any]] = [["#", "Player", "Team", "Position", "Number"]]
+    for i, p in enumerate(players, 1):
+        if not isinstance(p, dict):
+            continue
+        team_id = str(
+            _safe(p, "teamId", "TeamId", "team_id", "team", default="")
+        )
+        team_name = team_name_by_id.get(team_id, team_id or "-")
+        rows.append(
+            [
+                i,
+                _safe(p, "name", "Name", default=""),
+                team_name,
+                _safe(p, "position", "Position", default=""),
+                _safe(p, "number", "Number", "jersey", "Jersey", default=""),
+            ]
+        )
+
+    story: list[Any] = [
+        Paragraph("Jugadores Registrados", title),
+        Spacer(1, 6),
+        Paragraph(f"Total: {len(rows)-1}", normal),
+        Spacer(1, 8),
+        _table(rows, col_widths=[28, 170, 170, 110, 70]),
     ]
     doc.build(story)
     return buf.getvalue()
@@ -182,16 +238,19 @@ def build_pdf_matches_history(
         away = _safe(m, "awayTeamName", "awayTeam", "AwayTeamName", default="")
         hs = _safe(m, "homeScore", "HomeScore", default="")
         as_ = _safe(m, "awayScore", "AwayScore", default="")
-        date = _safe(m, "dateMatchUtc", "date", "DateMatch", "DateMatchUtc", default="")
+        date_raw = _safe(
+            m, "dateMatchUtc", "date", "DateMatch", "DateMatchUtc", default=""
+        )
+        date_txt = _fmt_short_dt(date_raw)
         status = _safe(m, "status", "Status", default="")
-        rows.append([str(date), str(home), str(away), f"{hs} - {as_}", str(status)])
+        rows.append([date_txt, str(home), str(away), f"{hs} - {as_}", str(status)])
 
     story: list[Any] = [
         Paragraph(hdr, title),
         Spacer(1, 6),
         Paragraph(f"Total partidos: {len(rows)-1}", normal),
         Spacer(1, 8),
-        _table(rows),
+        _table(rows, col_widths=[110, 170, 170, 70, 90]),
     ]
     doc.build(story)
     return buf.getvalue()
@@ -277,21 +336,39 @@ def build_pdf_player_stats(player_id: str, stats: dict[str, Any]) -> bytes:
     return buf.getvalue()
 
 
-def build_pdf_standings(rows: list[dict[str, Any]]) -> bytes:
+def build_pdf_stats_summary(
+    title_text: str,
+    rows: list[list[Any]],
+    subtitle: Optional[str] = None,
+    col_widths: Optional[list[float]] = None,
+) -> list[Any]:
+    """
+    Crea una sección (título h2 + tabla). Devuelve elementos para añadir a la story.
+    """
+    _, h2, _ = _styles()
+    elems: list[Any] = [Paragraph(title_text, h2)]
+    if subtitle:
+        elems.append(Paragraph(subtitle, getSampleStyleSheet()["Normal"]))
+        elems.append(Spacer(1, 4))
+    elems.append(_table(rows, col_widths=col_widths))
+    elems.append(Spacer(1, 10))
+    return elems
+
+
+def build_pdf_stats_report(sections: list[tuple[str, list[list[Any]]]]) -> bytes:
+    """
+    sections: lista de (titulo_seccion, data_table)
+    """
     buf = BytesIO()
     doc = _doc(buf)
-    title, _, normal = _styles()
+    title, _, _ = _styles()
 
-    data: list[list[Any]] = [["#", "Equipo", "Victorias"]]
-    for i, r in enumerate(rows, 1):
-        data.append([i, str(r.get("name", "")), int(r.get("wins", 0) or 0)])
+    story: list[Any] = [Paragraph("Resumen de Estadísticas", title), Spacer(1, 8)]
 
-    story: list[Any] = [
-        Paragraph("Tabla de Posiciones", title),
-        Spacer(1, 6),
-        Paragraph(f"Total: {len(rows)}", normal),
-        Spacer(1, 8),
-        _table(data, col_widths=[28, 340, 90]),
-    ]
+    for title_text, data in sections:
+        story += build_pdf_stats_summary(
+            title_text, data, col_widths=[28, 240, 60, 40, 40, 60, 60]
+        )
+
     doc.build(story)
     return buf.getvalue()

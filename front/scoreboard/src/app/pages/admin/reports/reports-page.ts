@@ -1,4 +1,3 @@
-// src/app/pages/admin/reports/reports-page.ts
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +17,6 @@ export class ReportsPage {
   private http = inject(HttpClient);
   private reports = inject(ReportsService);
 
-  // UI state
   teams = signal<Team[]>([]);
   loadingTeams = signal<boolean>(true);
   teamId = signal<number | null>(null);
@@ -37,7 +35,7 @@ export class ReportsPage {
     this.loadingTeams.set(true);
     this.http.get<any>('/api/teams').subscribe({
       next: (res) => {
-        const items: Team[] = Array.isArray(res?.items) ? res.items : res ?? [];
+        const items: Team[] = Array.isArray(res?.items) ? res.items : (res ?? []);
         this.teams.set(items);
         this.loadingTeams.set(false);
       },
@@ -60,11 +58,10 @@ export class ReportsPage {
   }
 
   // ===== Botones =====
-
   downloadTeams() {
     this.errorMsg.set('');
     this.reports.downloadTeams().subscribe({
-      next: (blob: Blob) => this.saveBlob(blob, 'equipos.pdf'),
+      next: (blob) => this.saveBlob(blob, 'equipos.pdf'),
       error: (e: HttpErrorResponse) => this.errorMsg.set(this.humanError(e)),
     });
   }
@@ -76,7 +73,7 @@ export class ReportsPage {
       return;
     }
     this.reports.downloadPlayersByTeam(this.teamId()!).subscribe({
-      next: (blob: Blob) => this.saveBlob(blob, `jugadores_${this.teamId()}.pdf`),
+      next: (blob) => this.saveBlob(blob, `jugadores_${this.teamId()}.pdf`),
       error: (e: HttpErrorResponse) => this.errorMsg.set(this.humanError(e)),
     });
   }
@@ -85,7 +82,7 @@ export class ReportsPage {
     this.errorMsg.set('');
     const params = { from: this.from() || undefined, to: this.to() || undefined };
     this.reports.downloadMatchesHistory(params).subscribe({
-      next: (blob: Blob) => this.saveBlob(blob, 'historial_partidos.pdf'),
+      next: (blob) => this.saveBlob(blob, 'historial_partidos.pdf'),
       error: (e: HttpErrorResponse) => this.errorMsg.set(this.humanError(e)),
     });
   }
@@ -97,7 +94,7 @@ export class ReportsPage {
       return;
     }
     this.reports.downloadMatchRoster(this.matchId()!).subscribe({
-      next: (blob: Blob) => this.saveBlob(blob, `roster_${this.matchId()}.pdf`),
+      next: (blob) => this.saveBlob(blob, `roster_${this.matchId()}.pdf`),
       error: (e: HttpErrorResponse) => this.errorMsg.set(this.humanError(e)),
     });
   }
@@ -106,7 +103,24 @@ export class ReportsPage {
   downloadStandings() {
     this.errorMsg.set('');
     this.reports.downloadStandings().subscribe({
-      next: (blob: Blob) => this.saveBlob(blob, 'standings.pdf'),
+      next: (blob) => this.saveBlob(blob, 'standings.pdf'),
+      error: (e: HttpErrorResponse) => this.errorMsg.set(this.humanError(e)),
+    });
+  }
+
+  // NUEVOS: todos los jugadores / resumen de estadísticas
+  downloadAllPlayers() {
+    this.errorMsg.set('');
+    this.reports.downloadAllPlayers().subscribe({
+      next: (blob) => this.saveBlob(blob, 'players_all.pdf'),
+      error: (e: HttpErrorResponse) => this.errorMsg.set(this.humanError(e)),
+    });
+  }
+
+  downloadStatsSummary() {
+    this.errorMsg.set('');
+    this.reports.downloadStatsSummary().subscribe({
+      next: (blob) => this.saveBlob(blob, 'stats_summary.pdf'),
       error: (e: HttpErrorResponse) => this.errorMsg.set(this.humanError(e)),
     });
   }

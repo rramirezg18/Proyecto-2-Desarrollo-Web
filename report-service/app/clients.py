@@ -1,4 +1,4 @@
-# app/clients.py
+# report-service/app/clients.py
 from __future__ import annotations
 
 import os
@@ -68,8 +68,36 @@ async def fetch_teams(api_bearer: str | None) -> list[dict[str, Any]]:
         return _as_list_items(r.json())
 
 
+async def fetch_teams_map(api_bearer: str | None) -> dict[str, str]:
+    """
+    Devuelve { "1": "Tigres", "2": "Leones", ... } a partir de /api/teams.
+    """
+    teams = await fetch_teams(api_bearer)
+    mapping: dict[str, str] = {}
+    for t in teams:
+        tid = str(t.get("id") or t.get("Id") or "")
+        name = t.get("name") or t.get("Name") or tid
+        if tid:
+            mapping[tid] = str(name)
+    return mapping
+
+
 # ============================
-# PLAYERS BY TEAM
+# STANDINGS
+# ============================
+async def fetch_standings(api_bearer: str | None) -> list[dict[str, Any]]:
+    """
+    GET /api/standings  ->  [{id, name, color, wins}, ...]
+    """
+    url = f"{BASE_API}/api/standings"
+    async with httpx.AsyncClient(timeout=30) as cx:
+        r = await cx.get(url, headers=_bearer_header(api_bearer))
+        r.raise_for_status()
+        return _as_list_items(r.json())
+
+
+# ============================
+# PLAYERS
 # ============================
 async def fetch_players_by_team(
     team_id: str, api_bearer: str | None
@@ -82,8 +110,36 @@ async def fetch_players_by_team(
         return _as_list_items(r.json())
 
 
+async def fetch_all_players(api_bearer: str | None) -> list[dict[str, Any]]:
+    """
+    Intenta GET /api/players (todos). Si la API no lo soporta, hace fallback por equipo.
+    """
+    url = f"{BASE_API}/api/players"
+    async with httpx.AsyncClient(timeout=60) as cx:
+        r = await cx.get(url, headers=_bearer_header(api_bearer))
+        if r.status_code == 200:
+            return _as_list_items(r.json())
+
+    # Fallback: iterar equipos y juntar sus jugadores
+    teams = await fetch_teams(api_bearer)
+    all_players: list[dict[str, Any]] = []
+    async with httpx.AsyncClient(timeout=30) as cx:
+        for t in teams:
+            tid = t.get("id") or t.get("Id")
+            if tid is None:
+                continue
+            rr = await cx.get(
+                f"{BASE_API}/api/players",
+                params={"teamId": tid},
+                headers=_bearer_header(api_bearer),
+            )
+            if rr.status_code == 200:
+                all_players.extend(_as_list_items(rr.json()))
+    return all_players
+
+
 # ============================
-# MATCHES HISTORY
+# MATCHES (history / stats)
 # ============================
 async def fetch_matches_history(
     from_date: str | None,
@@ -115,7 +171,7 @@ async def fetch_matches_history(
                 or m.get("DateMatch")
                 or m.get("date")
             )
-            d = _parse_iso(str(raw))  # intenta parsear lo que venga
+            d = _parse_iso(str(raw))
             if f_dt and (not d or d < f_dt):
                 continue
             if t_dt and (not d or d > t_dt):
@@ -126,10 +182,22 @@ async def fetch_matches_history(
     return data
 
 
+async def fetch_all_matches(api_bearer: str | None) -> list[dict[str, Any]]:
+    return await fetch_matches_history(None, None, api_bearer)
+
+
 # ============================
 # MATCH ROSTER
 # ============================
 async def fetch_match_roster(match_id: str, api_bearer: str | None) -> dict[str, Any]:
+    """
+    Devuelve:
+      {
+        "match": {...},
+        "homePlayers": [...],
+        "awayPlayers": [...]
+      }
+    """
     headers = _bearer_header(api_bearer)
     async with httpx.AsyncClient(timeout=30) as cx:
         # Detalle del partido
@@ -165,34 +233,3 @@ async def fetch_match_roster(match_id: str, api_bearer: str | None) -> dict[str,
         "homePlayers": home_players,
         "awayPlayers": away_players,
     }
-
-
-# ============================
-# PLAYER STATS (opcional)
-# ============================
-async def fetch_player_stats(player_id: str, api_bearer: str | None) -> dict[str, Any]:
-    headers = _bearer_header(api_bearer)
-    stats_url = f"{BASE_API}/api/players/{player_id}/stats"
-    async with httpx.AsyncClient(timeout=30) as cx:
-        r = await cx.get(stats_url, headers=headers)
-        if r.status_code == 404:
-            pr = await cx.get(f"{BASE_API}/api/players/{player_id}", headers=headers)
-            pr.raise_for_status()
-            p = pr.json()
-            return {"player": p, "stats": {}}
-        r.raise_for_status()
-        return r.json()
-
-
-# ============================
-# STANDINGS
-# ============================
-async def fetch_standings(api_bearer: str | None) -> list[dict[str, Any]]:
-    """
-    GET /api/standings  ->  [{id, name, color, wins}, ...]
-    """
-    url = f"{BASE_API}/api/standings"
-    async with httpx.AsyncClient(timeout=30) as cx:
-        r = await cx.get(url, headers=_bearer_header(api_bearer))
-        r.raise_for_status()
-        return _as_list_items(r.json())
