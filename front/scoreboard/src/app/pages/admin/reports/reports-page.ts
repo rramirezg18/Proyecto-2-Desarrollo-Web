@@ -12,6 +12,7 @@ type Team = { id: number; name: string };
   selector: 'app-reports-page',
   imports: [CommonModule, FormsModule],
   templateUrl: './reports-page.html',
+  styleUrls: ['./reports-page.css'],
 })
 export class ReportsPage {
   private http = inject(HttpClient);
