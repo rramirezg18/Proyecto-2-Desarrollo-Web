@@ -1,18 +1,29 @@
-<!-- src/app/pages/admin/reports/reports-page.html -->
 <div class="p-6 max-w-4xl mx-auto space-y-6">
   <h1 class="text-2xl font-bold">Reportes & Estadísticas</h1>
 
   <p *ngIf="errorMsg()" class="text-red-600">{{ errorMsg() }}</p>
 
-  <!-- NUEVO: Standings -->
+  <!-- Tabla de Posiciones -->
   <section class="border rounded-xl p-4">
     <h2 class="font-semibold mb-2">Tabla de Posiciones</h2>
     <button class="btn" (click)="downloadStandings()">Descargar standings.pdf</button>
   </section>
 
+  <!-- Estadísticas (resumen) -->
+  <section class="border rounded-xl p-4">
+    <h2 class="font-semibold mb-2">Estadística</h2>
+    <button class="btn" (click)="downloadStatsSummary()">Descargar Estadísticas.pdf</button>
+  </section>
+
+  <!-- Todos los Jugadores -->
+  <section class="border rounded-xl p-4">
+    <h2 class="font-semibold mb-2">Jugadores Registrados</h2>
+    <button class="btn" (click)="downloadAllPlayers()">Descargar players_all.pdf</button>
+  </section>
+
   <!-- Equipos -->
   <section class="border rounded-xl p-4">
-    <h2 class="font-semibold mb-2">Equipos</h2>
+    <h2 class="font-semibold mb-2">Equipos Registrados</h2>
     <button class="btn" (click)="downloadTeams()">Descargar equipos.pdf</button>
   </section>
 

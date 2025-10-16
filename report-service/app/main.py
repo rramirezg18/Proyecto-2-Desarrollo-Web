@@ -1,8 +1,8 @@
-# app/main.py
 from __future__ import annotations
 
 import io
 import os
+from typing import Any
 
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
@@ -54,9 +54,8 @@ def _upstream_502(e: httpx.HTTPStatusError) -> HTTPException:
 
 
 # ============================
-# Reports
+# Reports existentes
 # ============================
-
 @app.get("/reports/teams.pdf", dependencies=[Depends(require_admin)])
 async def report_teams(
     x_api_authorization: str | None = Header(default=None, alias="X-Api-Authorization")
@@ -79,18 +78,13 @@ async def report_players(
     x_api_authorization: str | None = Header(default=None, alias="X-Api-Authorization"),
 ):
     try:
-        # 1) jugadores (como antes)
         players = await clients.fetch_players_by_team(team_id, x_api_authorization)
 
-        # 2) nombre del equipo: listar /api/teams y buscar por id (sin romper si falla)
+        # nombre del equipo (opcional, no falla si no se puede)
         team_name = None
         try:
-            teams = await clients.fetch_teams(x_api_authorization)
-            for t in teams:
-                tid = str(t.get("id") or t.get("Id"))
-                if tid == str(team_id):
-                    team_name = t.get("name") or t.get("Name")
-                    break
+            team_map = await clients.fetch_teams_map(x_api_authorization)
+            team_name = team_map.get(str(team_id))
         except httpx.HTTPStatusError:
             team_name = None
 
@@ -146,7 +140,6 @@ async def report_match_roster(
     )
 
 
-# ---------- standings ----------
 @app.get("/reports/standings.pdf", dependencies=[Depends(require_admin)])
 async def report_standings(
     x_api_authorization: str | None = Header(default=None, alias="X-Api-Authorization")
@@ -163,7 +156,209 @@ async def report_standings(
     )
 
 
-# Manejo genérico de excepciones de httpx (opcional)
+# ============================
+# NUEVOS REPORTES
+# ============================
+@app.get("/reports/players/all.pdf", dependencies=[Depends(require_admin)])
+async def report_all_players(
+    x_api_authorization: str | None = Header(default=None, alias="X-Api-Authorization")
+):
+    """
+    Lista todos los jugadores registrados con el nombre del equipo.
+    """
+    try:
+        players = await clients.fetch_all_players(x_api_authorization)
+        team_map = await clients.fetch_teams_map(x_api_authorization)
+    except httpx.HTTPStatusError as e:
+        raise _upstream_502(e)
+
+    pdf = pdf_utils.build_pdf_all_players(players, team_map)
+    return StreamingResponse(
+        io.BytesIO(pdf),
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'attachment; filename="players_all.pdf"'},
+    )
+
+
+def _agg_stats_from_matches(
+    matches: list[dict[str, Any]], team_map: dict[str, str]
+) -> dict[str, dict[str, Any]]:
+    """
+    Calcula PJ/PG/PP/PF/PC por equipo a partir de la lista de partidos.
+    """
+    stats: dict[str, dict[str, Any]] = {}
+
+    def _ensure(team_id: str) -> dict[str, Any]:
+        if team_id not in stats:
+            stats[team_id] = {
+                "teamId": team_id,
+                "team": team_map.get(team_id, team_id),
+                "played": 0,
+                "wins": 0,
+                "losses": 0,
+                "pf": 0,   # puntos a favor
+                "pa": 0,   # puntos en contra
+            }
+        return stats[team_id]
+
+    for m in matches:
+        home_id = str(
+            m.get("homeTeamId")
+            or m.get("HomeTeamId")
+            or (m.get("homeTeam") or {}).get("id")
+            or ""
+        )
+        away_id = str(
+            m.get("awayTeamId")
+            or m.get("AwayTeamId")
+            or (m.get("awayTeam") or {}).get("id")
+            or ""
+        )
+
+        try:
+            hs = int(m.get("homeScore") or m.get("HomeScore") or 0)
+            as_ = int(m.get("awayScore") or m.get("AwayScore") or 0)
+        except Exception:
+            # si no hay marcador, lo saltamos
+            continue
+
+        if not home_id or not away_id:
+            continue
+
+        h = _ensure(home_id)
+        a = _ensure(away_id)
+
+        h["played"] += 1
+        a["played"] += 1
+        h["pf"] += hs
+        h["pa"] += as_
+        a["pf"] += as_
+        a["pa"] += hs
+
+        if hs > as_:
+            h["wins"] += 1
+            a["losses"] += 1
+        elif as_ > hs:
+            a["wins"] += 1
+            h["losses"] += 1
+        # empates no cambian wins/losses
+
+    return stats
+
+
+@app.get("/reports/stats/summary.pdf", dependencies=[Depends(require_admin)])
+async def report_stats_summary(
+    x_api_authorization: str | None = Header(default=None, alias="X-Api-Authorization")
+):
+    """
+    Secciones:
+      - Top por victorias
+      - Top por puntos a favor
+      - Menos puntos a favor
+      - Menos derrotas
+    """
+    try:
+        standings = await clients.fetch_standings(x_api_authorization)  # wins por equipo
+        team_map = await clients.fetch_teams_map(x_api_authorization)
+        matches = await clients.fetch_all_matches(x_api_authorization)
+    except httpx.HTTPStatusError as e:
+        raise _upstream_502(e)
+
+    agg = _agg_stats_from_matches(matches, team_map)
+
+    # ------- Top por victorias (usar standings si viene, si no, usar agg) -------
+    wins_list: list[tuple[str, int]] = []
+    if isinstance(standings, list) and standings:
+        for r in standings:
+            tid = str(r.get("id") or r.get("Id"))
+            wins = int(r.get("wins") or 0)
+            name = team_map.get(tid, r.get("name") or r.get("Name") or tid)
+            wins_list.append((tid, wins, name))  # (id, wins, nombre)
+    else:
+        for tid, s in agg.items():
+            wins_list.append((tid, int(s.get("wins") or 0), s.get("team") or tid))
+
+    wins_list.sort(key=lambda x: (-x[1], x[2]))
+    top_wins = [["#", "Equipo", "ID", "PJ", "PG", "PP", "PF", "PC"]]
+    for idx, (tid, _w, name) in enumerate(wins_list[:10], 1):
+        s = agg.get(tid, {"played": 0, "wins": _w, "losses": 0, "pf": 0, "pa": 0})
+        top_wins.append(
+            [idx, name, tid, s["played"], s["wins"], s["losses"], s["pf"], s["pa"]]
+        )
+
+    # ------- Top por puntos a favor -------
+    pf_sorted = sorted(
+        agg.values(), key=lambda s: (-int(s["pf"]), s["team"])
+    )
+    top_pf = [["#", "Equipo", "ID", "PJ", "PG", "PP", "PF", "PC"]]
+    for idx, s in enumerate(pf_sorted[:10], 1):
+        top_pf.append(
+            [
+                idx,
+                s["team"],
+                s["teamId"],
+                s["played"],
+                s["wins"],
+                s["losses"],
+                s["pf"],
+                s["pa"],
+            ]
+        )
+
+    # ------- Menos puntos a favor -------
+    min_pf_sorted = sorted(
+        agg.values(), key=lambda s: (int(s["pf"]), s["team"])
+    )
+    min_pf = [["#", "Equipo", "ID", "PJ", "PG", "PP", "PF", "PC"]]
+    for idx, s in enumerate(min_pf_sorted[:10], 1):
+        min_pf.append(
+            [
+                idx,
+                s["team"],
+                s["teamId"],
+                s["played"],
+                s["wins"],
+                s["losses"],
+                s["pf"],
+                s["pa"],
+            ]
+        )
+
+    # ------- Menos derrotas -------
+    min_losses_sorted = sorted(
+        agg.values(), key=lambda s: (int(s["losses"]), -int(s["wins"]), s["team"])
+    )
+    min_losses = [["#", "Equipo", "ID", "PJ", "PG", "PP", "PF", "PC"]]
+    for idx, s in enumerate(min_losses_sorted[:10], 1):
+        min_losses.append(
+            [
+                idx,
+                s["team"],
+                s["teamId"],
+                s["played"],
+                s["wins"],
+                s["losses"],
+                s["pf"],
+                s["pa"],
+            ]
+        )
+
+    sections = [
+        ("Top por Victorias", top_wins),
+        ("Top por Puntos a Favor", top_pf),
+        ("Menos Puntos a Favor", min_pf),
+        ("Menos Derrotas", min_losses),
+    ]
+
+    pdf = pdf_utils.build_pdf_stats_report(sections)
+    return StreamingResponse(
+        io.BytesIO(pdf),
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'attachment; filename="stats_summary.pdf"'},
+    )
+
+
+# Manejo genérico de excepciones de httpx
 @app.exception_handler(httpx.RequestError)
 async def httpx_request_error_handler(_req: Request, exc: httpx.RequestError):
     return JSONResponse(status_code=502, content={"detail": {"message": str(exc)}})
