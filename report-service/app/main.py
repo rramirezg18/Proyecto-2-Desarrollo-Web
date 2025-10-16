@@ -19,10 +19,6 @@ ALGO = "HS256"
 
 # ---------- Seguridad: requiere RS_TOKEN con role=admin ----------
 async def require_admin(authorization: str | None = Header(default=None)) -> None:
-    """
-    Valida el bearer enviado por Nginx al report-service.
-    Debe ser un JWT HS256 con claim role/admin.
-    """
     if not authorization or not authorization.lower().startswith("bearer "):
         raise HTTPException(status_code=401, detail="Missing RS bearer")
     token = authorization.split(" ", 1)[1]
@@ -61,7 +57,6 @@ def _upstream_502(e: httpx.HTTPStatusError) -> HTTPException:
 # Reports
 # ============================
 
-
 @app.get("/reports/teams.pdf", dependencies=[Depends(require_admin)])
 async def report_teams(
     x_api_authorization: str | None = Header(default=None, alias="X-Api-Authorization")
@@ -84,10 +79,25 @@ async def report_players(
     x_api_authorization: str | None = Header(default=None, alias="X-Api-Authorization"),
 ):
     try:
+        # 1) jugadores (como antes)
         players = await clients.fetch_players_by_team(team_id, x_api_authorization)
+
+        # 2) nombre del equipo: listar /api/teams y buscar por id (sin romper si falla)
+        team_name = None
+        try:
+            teams = await clients.fetch_teams(x_api_authorization)
+            for t in teams:
+                tid = str(t.get("id") or t.get("Id"))
+                if tid == str(team_id):
+                    team_name = t.get("name") or t.get("Name")
+                    break
+        except httpx.HTTPStatusError:
+            team_name = None
+
     except httpx.HTTPStatusError as e:
         raise _upstream_502(e)
-    pdf = pdf_utils.build_pdf_players_by_team(team_id, players)
+
+    pdf = pdf_utils.build_pdf_players_by_team(team_id, players, team_name)
     return StreamingResponse(
         io.BytesIO(pdf),
         media_type="application/pdf",
@@ -136,7 +146,7 @@ async def report_match_roster(
     )
 
 
-# ---------- NUEVO: standings ----------
+# ---------- standings ----------
 @app.get("/reports/standings.pdf", dependencies=[Depends(require_admin)])
 async def report_standings(
     x_api_authorization: str | None = Header(default=None, alias="X-Api-Authorization")

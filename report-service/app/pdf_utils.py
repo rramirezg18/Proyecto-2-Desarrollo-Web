@@ -123,7 +123,11 @@ def build_pdf_teams(teams: Iterable[dict[str, Any]]) -> bytes:
     return buf.getvalue()
 
 
-def build_pdf_players_by_team(team_id: str, players: Iterable[dict[str, Any]]) -> bytes:
+def build_pdf_players_by_team(
+    team_id: str,
+    players: Iterable[dict[str, Any]],
+    team_name: str | None = None,  # <-- NUEVO parámetro opcional
+) -> bytes:
     buf = BytesIO()
     doc = _doc(buf)
     title, _, normal = _styles()
@@ -141,8 +145,15 @@ def build_pdf_players_by_team(team_id: str, players: Iterable[dict[str, Any]]) -
             ]
         )
 
+    # Título con nombre si lo tenemos
+    titulo = (
+        f"Jugadores del Equipo {team_name}  (#{team_id})"
+        if team_name
+        else f"Jugadores del Equipo #{team_id}"
+    )
+
     story: list[Any] = [
-        Paragraph(f"Jugadores del Equipo #{team_id}", title),
+        Paragraph(titulo, title),
         Spacer(1, 6),
         Paragraph(f"Total: {len(rows)-1}", normal),
         Spacer(1, 8),
